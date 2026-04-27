@@ -12,8 +12,8 @@ Shared facts every workflow command in `.claude/commands/` should read. Update t
 - **Git default branch**: `main`
 
 ## Slack
-- **Standup channel**: `#standup-updates`
-- **PR / work announcements channel**: `#standup-updates` (same)
+- **Standup channel**: `#standup`
+- **PR / work announcements channel**: `#standup` (same)
 
 ## Sprint
 - **Cadence**: 3 weeks

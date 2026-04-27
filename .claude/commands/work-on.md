@@ -19,7 +19,15 @@ You are implementing Jira ticket **$1** end-to-end. Read `.claude/workflow-confi
 ## Phase 2 — Pull supporting context
 
 For each link found:
-- **Figma URL** → use the Figma MCP to fetch design context (`get_design_context`, `get_screenshot`, `get_variable_defs` as appropriate). If the Figma MCP is not available, ask the user to open Figma desktop and enable Dev Mode MCP.
+- **Figma URL** → pull *complete* design context via the Figma MCP. Do **all** of the following before writing any UI code; "as appropriate" is not enough — when the ticket has a Figma source, the implementation must be pixel-perfect, and you cannot be pixel-perfect without reading every value off the design:
+  1. `get_design_context` on the linked node — structure, computed CSS, asset references.
+  2. `get_screenshot` of the same node — keep this in your context window so you can compare your implementation against it visually.
+  3. `get_variable_defs` for every design token used by the node (colors, spacing, radii, typography, shadows). Map these to the project's existing tokens / CSS variables; **do not invent values** or eyeball them off the screenshot.
+  4. If the node has child nodes you'll implement (e.g. each row in a list), pull their context too — don't infer sub-component spec from the parent.
+
+  **Pixel-perfect bar**: exact spacing, exact colors, exact typography (size / weight / line-height / letter-spacing), exact border radii, exact icon sizes, every interactive state (default / hover / active / focus / disabled / selected), light + dark surfaces. If a value isn't visible in `get_design_context` or `get_variable_defs`, ask before guessing.
+
+  If the Figma MCP is unavailable, **stop and ask the user** to open Figma desktop and enable Dev Mode MCP. Do not proceed by eyeballing the screenshot — that produces drift the reviewer will reject.
 - **Confluence tech-design page** → use `mcp__atlassian__getConfluencePage` to read it.
 - **Codebase** → grep / read files referenced in the ticket or tech design before writing any code.
 
@@ -36,11 +44,12 @@ For each link found:
 
 1. Implement the change against the tech design / acceptance criteria. Stay within the ticket's scope; do not bundle unrelated cleanup.
 2. Match existing code conventions (look at neighboring files first).
-3. Run the project's checks before declaring done:
+3. **Pixel-perfect check (when a Figma is linked).** Compare your implementation side-by-side with the Figma screenshot from Phase 2 before declaring done. Walk through every value: spacing, colors, typography, radii, icon sizes, states (default / hover / active / focus / disabled / selected), light + dark surfaces. Every numeric value should trace back to a Figma variable or computed CSS from `get_design_context`; if you can't trace it, fix it. "Looks close" is a fail.
+4. Run the project's checks before declaring done:
    - `pnpm lint`
    - `pnpm build` (or `pnpm typecheck` if it exists in `package.json` scripts)
    - `pnpm test` if a test script exists
-4. Fix any failures. Do not skip checks.
+5. Fix any failures. Do not skip checks.
 
 ## Phase 5 — Self-review and pause for dev review
 
